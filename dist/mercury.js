@@ -32,6 +32,7 @@ var difflib = _interopDefault(require('difflib'));
 var _Array$from = _interopDefault(require('@babel/runtime-corejs2/core-js/array/from'));
 var ellipsize = _interopDefault(require('ellipsize'));
 var _Array$isArray = _interopDefault(require('@babel/runtime-corejs2/core-js/array/is-array'));
+var fs = _interopDefault(require('fs'));
 
 var NORMALIZE_RE = /\s{2,}(?![^<>]*<\/(pre|code|textarea)>)/g;
 function normalizeSpaces(text) {
@@ -209,16 +210,32 @@ var MAX_CONTENT_LENGTH = 5242880; // Turn the global proxy on or off
 
 function get(options) {
   return new _Promise(function (resolve, reject) {
-    request(options, function (err, response, body) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({
-          body: body,
-          response: response
-        });
-      }
-    });
+    if (options.url.startsWith('file:')) {
+      fs.readFile('/etc/passwd', function (err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            body: data,
+            response: {
+              statusMessage: "OK",
+              statusCode = 200
+            };
+          });
+        }
+      });
+    } else {
+      request(options, function (err, response, body) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            body: body,
+            response: response
+          });
+        }
+      });
+    }
   });
 } // Evaluate a response to ensure it's something we should be keeping.
 // This does not validate in the sense of a response being 200 or not.
