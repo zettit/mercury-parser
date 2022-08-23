@@ -219,8 +219,8 @@ function get(options) {
             body: data,
             response: {
               statusMessage: "OK",
-              statusCode = 200
-            };
+              statusCode: 200
+            }
           });
         }
       });
@@ -7704,14 +7704,24 @@ var Mercury = {
 
               parsedUrl = URL.parse(url);
 
-              if (validateUrl(parsedUrl)) {
+
+              if (parsedUrl.protocol == "file:") {
+                try {
+                  const data = fs.readFileSync(parsedUrl.pathname, 'utf8');
+                  html = data;
+                  _context.next = 6;
+                  break;
+                } catch (err) {
+                  console.error(err);
+                }
+              } else if (validateUrl(parsedUrl)) {
                 _context.next = 6;
                 break;
               }
 
               return _context.abrupt("return", {
                 error: true,
-                message: 'The url parameter passed does not look like a valid URL. Please check your URL and try again.'
+                message:  'The url parameter passed does not look like a valid URL. Please check your URL and try again.'
               });
 
             case 6:
@@ -7734,7 +7744,9 @@ var Mercury = {
                 addExtractor(customExtractor);
               }
 
-              Extractor = getExtractor(url, parsedUrl, $); // console.log(`Using extractor for ${Extractor.domain}`);
+              if (parsedUrl.protocol != "file:") {
+                Extractor = getExtractor(url, parsedUrl, $); // console.log(`Using extractor for ${Extractor.domain}`);
+              }
               // if html still has not been set (i.e., url passed to Mercury.parse),
               // set html from the response of Resource.create
 
